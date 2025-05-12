@@ -3,8 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\FaqResource\Pages;
-use App\Filament\Resources\FaqResource\RelationManagers;
-use App\Models\Faq;
+use App\Models\FAQ;
 use Filament\Forms;
 use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Form;
@@ -14,7 +13,7 @@ use Filament\Tables\Table;
 
 class FaqResource extends Resource
 {
-    protected static ?string $model = Faq::class;
+    protected static ?string $model = FAQ::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-question-mark-circle';
     protected static ?string $navigationLabel = 'FAQs';
