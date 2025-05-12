@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
 
 return new class extends Migration
 {
@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->string('employee_id');
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
@@ -26,6 +27,8 @@ return new class extends Migration
             $table->string('delete_token')->nullable();
             $table->timestamp('delete_token_expires_at')->nullable();
             $table->string('deleted_at')->nullable();
+            $table->enum('role', ['admin', 'employee'])->default('employee');
+            $table->string('is_verified')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
