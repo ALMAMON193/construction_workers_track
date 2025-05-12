@@ -11,7 +11,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
  * @method static create(array $array)
+ * @method static findOrFail(int|string|null $id)
  * @property mixed $role
+ * @property mixed $avatar
  */
 class User extends Authenticatable
 {
@@ -49,5 +51,62 @@ class User extends Authenticatable
             'password' => 'hashed'
         ];
     }
+    public function getAvatarAttribute($value): ?string
+    {
+        return empty($value) ? null : (filter_var($value, FILTER_VALIDATE_URL) ? $value : (request()->is('api/*') ? url($value) : $value));
+    }
+    public function notificationSettings()
+    {
+        return $this->hasOne(NotificationSetting::class);
+    }
 
+    public function ratings()
+    {
+        return $this->hasMany(Rating::class);
+    }
+
+    public function fileStorageTracks()
+    {
+        return $this->hasMany(FileStorageTrack::class);
+    }
+
+    public function locationCategories()
+    {
+        return $this->hasMany(LocationCategory::class);
+    }
+
+    public function userLocations()
+    {
+        return $this->hasMany(UserLocation::class);
+    }
+
+    public function employeeChecking()
+    {
+        return $this->hasMany(EmployeeChecking::class);
+    }
+
+    public function expenseMoney()
+    {
+        return $this->hasMany(ExpenseMoney::class);
+    }
+
+    public function facingProblems()
+    {
+        return $this->hasMany(FacingProblem::class);
+    }
+
+    public function todayDurations()
+    {
+        return $this->hasMany(TodayDuration::class);
+    }
+
+    public function dailyUpdates()
+    {
+        return $this->hasMany(DailyUpdate::class);
+    }
+
+    public function subscriptions()
+    {
+        return $this->hasMany(UserSubscription::class);
+    }
 }

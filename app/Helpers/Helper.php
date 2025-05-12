@@ -9,7 +9,7 @@ class Helper
 {
 
     //! File or Image Upload
-    public static function fileUpload($file, string $folder, string $name): ?string
+    public static function fileUpload($file, string $folder): ?string
     {
         if (!$file->isValid()) {
             return null;

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\API\User\ProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\Auth\LoginController;
@@ -21,4 +22,10 @@ Route::post('/reset-password', [ResetPasswordController::class, 'ResetPassword']
 Route::group(['middleware' => 'auth:sanctum'], static function () {
     Route::get('/refresh-token', [LoginController::class, 'refreshToken']);
     Route::post('/logout', [LogoutController::class, 'logout']);
+
+    /*======================User profile update start ===========================*/
+    Route::get('/view-profile', [ProfileController::class, 'viewProfile']);
+    Route::post('/update-profile', [ProfileController::class, 'updateProfile']);
+    Route::post('/upload-avatar', [ProfileController::class, 'uploadAvatar']);
+    /*======================end Profile section ================================*/
 });
