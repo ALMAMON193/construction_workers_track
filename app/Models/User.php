@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
  * @method static create(array $array)
+ * @property mixed $role
  */
 class User extends Authenticatable
 {

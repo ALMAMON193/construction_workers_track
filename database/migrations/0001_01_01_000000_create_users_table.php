@@ -29,6 +29,11 @@ return new class extends Migration
             $table->string('deleted_at')->nullable();
             $table->enum('role', ['admin', 'employee'])->default('employee');
             $table->string('is_verified')->nullable();
+            $table->string('phone')->nullable();
+            $table->string('country_code')->nullable();
+            $table->string('address')->nullable();
+            $table->time('work_time')->nullable();
+            $table->string('avatar')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
