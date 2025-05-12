@@ -7,7 +7,6 @@ use App\Http\Controllers\API\Auth\LogoutController;
 use App\Http\Controllers\API\Auth\RegisterController;
 use App\Http\Controllers\API\Auth\ResetPasswordController;
 
-
 //register
 Route::post('register', [RegisterController::class, 'register']);
 Route::post('/verify-email', [RegisterController::class, 'VerifyEmail']);

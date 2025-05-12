@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -17,14 +17,6 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->integer('employee_id');
-            $table->string('phone')->nullable();
-            $table->string('country_code')->nullable();
-            $table->text('address')->nullable();
-            $table->enum('role', ['admin','employee'])->default('employee');
-            $table->time('total_duty')->nullable();
-            $table->string('avatar')->nullable();
-
             $table->string('otp')->nullable();
             $table->string('otp_created_at')->nullable();
             $table->boolean('is_otp_verified')->default(false);
@@ -32,12 +24,12 @@ return new class extends Migration
             $table->string('reset_password_token')->nullable();
             $table->timestamp('reset_password_token_expire_at')->nullable();
             $table->string('delete_token')->nullable();
-            $table->string('deleted_at')->nullable();
             $table->timestamp('delete_token_expires_at')->nullable();
-            $table->boolean('is_verified')->default(false);
+            $table->string('deleted_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
+
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();

@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Models\EmployeeChecking;
+
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class User extends Authenticatable
 {
-use HasFactory, Notifiable,HasApiTokens,SoftDeletes;
+    use HasFactory, Notifiable,HasApiTokens,SoftDeletes;
 
     protected $guarded = ['id'];
 
@@ -46,59 +46,4 @@ use HasFactory, Notifiable,HasApiTokens,SoftDeletes;
         ];
     }
 
-
-    public function notificationSettings()
-    {
-        return $this->hasOne(NotificationSetting::class);
-    }
-
-    public function ratings()
-    {
-        return $this->hasMany(Rating::class);
-    }
-
-    public function fileStorageTracks()
-    {
-        return $this->hasMany(FileStorageTrack::class);
-    }
-
-    public function locationCategories()
-    {
-        return $this->hasMany(LocationCategory::class);
-    }
-
-    public function userLocations()
-    {
-        return $this->hasMany(UserLocation::class);
-    }
-
-    public function employeeCheckings()
-    {
-        return $this->hasMany(EmployeeChecking::class);
-    }
-
-    public function expenseMoney()
-    {
-        return $this->hasMany(ExpenseMoney::class);
-    }
-
-    public function facingProblems()
-    {
-        return $this->hasMany(FacingProblem::class);
-    }
-
-    public function todayDurations()
-    {
-        return $this->hasMany(TodayDuration::class);
-    }
-
-    public function dailyUpdates()
-    {
-        return $this->hasMany(DailyUpdate::class);
-    }
-
-    public function subscriptions()
-    {
-        return $this->hasMany(UserSubscription::class);
-    }
 }
