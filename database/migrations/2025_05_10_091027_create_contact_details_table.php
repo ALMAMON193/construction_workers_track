@@ -13,11 +13,9 @@ return new class extends Migration
     {
         Schema::create('contact_details', function (Blueprint $table) {
             $table->id();
-            $table->string('whatsapp')->nullable();
-            $table->string('facebook')->nullable();
-            $table->string('instagram')->nullable();
-            $table->string('twitter')->nullable();
-            $table->string('service_center')->nullable();
+            $table->string('name');
+            $table->string('icon');
+            $table->string('link')->nullable();
             $table->timestamps();
         });
     }

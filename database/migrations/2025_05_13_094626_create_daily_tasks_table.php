@@ -11,13 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('employee_checking_tracks', function (Blueprint $table) {
+        Schema::create('daily_tasks', function (Blueprint $table) {
             $table->id();
-            $table->dateTime('check_in')->nullable();
-            $table->dateTime('checkout')->nullable();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->bigInteger('total_hours');
-            $table->string('role');
+            $table->date('task_date');
             $table->timestamps();
         });
     }
@@ -27,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('employee_checking_tracks');
+        Schema::dropIfExists('daily_tasks');
     }
 };

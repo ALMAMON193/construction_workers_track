@@ -70,11 +70,6 @@ class User extends Authenticatable
         return $this->hasMany(FileStorageTrack::class);
     }
 
-    public function locationCategories()
-    {
-        return $this->hasMany(LocationCategory::class);
-    }
-
     public function userLocations()
     {
         return $this->hasMany(UserLocation::class);
@@ -89,6 +84,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(ExpenseMoney::class);
     }
+    public function dailyTask()
+    {
+        return $this->hasOne(DailyTask::class);
+    }
 
     public function facingProblems()
     {
@@ -98,11 +97,6 @@ class User extends Authenticatable
     public function todayDurations()
     {
         return $this->hasMany(TodayDuration::class);
-    }
-
-    public function dailyUpdates()
-    {
-        return $this->hasMany(DailyUpdate::class);
     }
 
     public function subscriptions()

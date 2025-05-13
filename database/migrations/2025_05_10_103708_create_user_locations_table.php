@@ -14,13 +14,13 @@ return new class extends Migration
         Schema::create('user_locations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('location');
-            $table->string('lat');
-            $table->string('long');
-            $table->bigInteger('building');
-            $table->bigInteger('appointment');
-            $table->bigInteger('floor');
-            $table->bigInteger('category');
+            $table->string('name');
+            $table->float('lat');
+            $table->float('long');
+            $table->string('building');
+            $table->string('appointment')->nullable();
+            $table->string('floor')->nullable();
+            $table->enum('category', ['Home','Office', 'Other']);
             $table->timestamps();
         });
     }

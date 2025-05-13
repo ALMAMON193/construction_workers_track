@@ -2,14 +2,15 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\FaqResource\Pages;
 use App\Models\FAQ;
 use Filament\Forms;
-use Filament\Forms\Components\MarkdownEditor;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Forms\Form;
 use Filament\Tables\Table;
+use Illuminate\Support\Str;
+use Filament\Resources\Resource;
+use App\Filament\Resources\FaqResource\Pages;
+use Filament\Forms\Components\MarkdownEditor;
 
 class FaqResource extends Resource
 {
@@ -36,8 +37,17 @@ class FaqResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('question')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('answer')->limit(50),
+                Tables\Columns\TextColumn::make('question')->sortable()->searchable()->limit(50)
+                    ->formatStateUsing(function ($state) {
+                        $plainText = strip_tags(Str::markdown($state));
+                        return Str::words($plainText, 50, '...');
+                    }),
+                Tables\Columns\TextColumn::make('answer')
+                    ->limit(50)
+                    ->formatStateUsing(function ($state) {
+                        $plainText = strip_tags(Str::markdown($state));
+                        return Str::words($plainText, 50, '...');
+                    }),
             ])
             ->filters([])
             ->actions([

@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('daily_updates', function (Blueprint $table) {
-              $table->id();
-            $table->longText('description');
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+        Schema::create('daily_task_items', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('daily_task_id')->constrained()->onDelete('cascade'); // Link to daily_tasks
+           $table->string('task_number');
+           $table->string('task_description');
             $table->timestamps();
         });
     }
@@ -24,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('daily_updates');
+        Schema::dropIfExists('daily_task_items');
     }
 };

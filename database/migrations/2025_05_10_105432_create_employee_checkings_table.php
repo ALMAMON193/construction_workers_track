@@ -12,12 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('employee_checkings', function (Blueprint $table) {
-            $table->id();
+           $table->id();
+            $table->time('check_in')->nullable();
+            $table->time('checkout')->nullable();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->dateTime('check_in');
-            $table->dateTime('check_out');
-            $table->bigInteger('total_hours');
+            $table->dateTime('total_hours')->nullable();
+            $table->date('date');
             $table->string('role');
+            $table->enum('status', ['check_in', 'check_out']);
             $table->timestamps();
         });
     }
