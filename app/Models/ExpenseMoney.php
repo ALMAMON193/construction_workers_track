@@ -11,4 +11,8 @@ class ExpenseMoney extends Model
     {
         return $this->belongsTo(User::class);
     }
+    public function getFileAttribute($value): ?string
+    {
+        return empty($value) ? null : (filter_var($value, FILTER_VALIDATE_URL) ? $value : (request()->is('api/*') ? url($value) : $value));
+    }
 }

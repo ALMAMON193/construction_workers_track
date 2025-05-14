@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\API;
 
+use Exception;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Traits\ResponseTrait;
 use App\Models\EmployeeChecking;
@@ -10,58 +12,109 @@ use App\Http\Controllers\Controller;
 class CheckInOutController extends Controller
 {
     use ResponseTrait;
-
     public function storeAttendance(Request $request)
-{
-    $request->validate([
-        'time' => 'required|string',
-        'role' => 'required|string',
-    ]);
+    {
+        $request->validate([
+            'time' => 'required|string',
+            'current_location' => 'required|string',
+            'role' => 'required|string',
+        ]);
 
-    $user = auth()->user();
-    if (!$user) {
-        return $this->sendError('Unauthorized', 401);
+        $user = auth()->user();
+        if (!$user) {
+            return $this->sendError('Unauthorized', 401);
+        }
+
+        $isCheckingIn = $request->has('check_in') || $request->input('status') === 'check_in';
+        $currentDate = now()->format('Y-m-d');
+
+        if ($isCheckingIn) {
+            return $this->handleCheckIn($user, $request, $currentDate);
+        }
+        return $this->handleCheckOut($user, $request, $currentDate);
     }
 
-    $isCheckingIn = $request->has('check_in') || $request->input('status') === 'check_in';
-    $status = $isCheckingIn ? 'check_in' : 'check_out';
+    protected function handleCheckIn($user, $request, $date)
+    {
+        $hasActiveCheckIn = EmployeeChecking::where('user_id', $user->id)
+            ->whereDate('date', $date)
+            ->whereNull('check_out')
+            ->exists();
 
-    // For check-out: Find the most recent check-in without a check-out
-    if (!$isCheckingIn) {
+        if ($hasActiveCheckIn) {
+            return $this->sendError('You have an active check-in. Please check-out first.', 400);
+        }
+
+        $attendance = EmployeeChecking::create([
+            'user_id' => $user->id,
+            'role' => $request->role,
+            'current_location' => $request->current_location,
+            'status' => 'check_in',
+            'date' => $date,
+            'check_in' => $request->time,
+            'check_out' => null,
+            'total_hours' => null
+        ]);
+
+        return $this->sendResponse($attendance, 'Checked in successfully');
+    }
+
+    protected function handleCheckOut($user, $request, $date)
+    {
         $lastCheckIn = EmployeeChecking::where('user_id', $user->id)
-            ->whereDate('date', now()->format('Y-m-d'))
-            ->where('status', 'check_in')
-            ->whereDoesntHave('checkOutPair') // Assuming you have this relationship
+            ->whereDate('date', $date)
+            ->whereNull('check_out')
             ->latest()
             ->first();
 
         if (!$lastCheckIn) {
             return $this->sendError('No active check-in found to pair with this check-out', 400);
         }
+
+        $checkInTime = Carbon::parse($lastCheckIn->check_in);
+        $checkOutTime = Carbon::parse($request->time);
+        $diff = $checkOutTime->diff($checkInTime);
+
+        $totalHours = $diff->h . ' Hours ' . $diff->i . ' min';
+
+        $lastCheckIn->update([
+            'check_out' => $request->time,
+            'total_hours' => $totalHours,
+            'status' => 'check_out'
+        ]);
+
+        $this->updateUserTotalDutyTime($user);
+
+        return $this->sendResponse($lastCheckIn, 'Checked out successfully');
     }
 
-    $attendanceData = [
-        'role' => $request->role,
-        'status' => $status,
-        'date' => now()->format('Y-m-d'),
-        'user_id' => $user->id,
-        $isCheckingIn ? 'check_in' : 'check_out' => $request->time
-    ];
-
-    $attendance = EmployeeChecking::create($attendanceData);
-
-    // If checking out, calculate and update total hours
-    if (!$isCheckingIn && isset($lastCheckIn)) {
-        $checkInTime = \Carbon\Carbon::parse($lastCheckIn->check_in);
-        $checkOutTime = \Carbon\Carbon::parse($request->time);
-        $totalHours = $checkOutTime->diffInHours($checkInTime);
-
-        // Update either the check-out record or check-in record
-        $attendance->update(['total_hours' => $totalHours]);
-        // OR: $lastCheckIn->update(['check_out' => $request->time, 'total_hours' => $totalHours]);
+    protected function updateUserTotalDutyTime($user)
+    {
+        $totalMinutes = EmployeeChecking::where('user_id', $user->id)
+            ->whereNotNull('check_out')
+            ->whereNotNull('total_hours')
+            ->get()
+            ->sum(function ($record) {
+                if (preg_match('/(\d+) Hours (\d+) min/', $record->total_hours, $matches)) {
+                    return ((int)$matches[1] * 60) + (int)$matches[2];
+                }
+                return 0;
+            });
+        $workingDays = floor($totalMinutes / (60 * 8));
+        $user->update(['working_days' => "$workingDays Days"]);
     }
-
-    $message = $isCheckingIn ? 'Checked in successfully' : 'Checked out successfully';
-    return $this->sendResponse($attendance, $message);
-}
+    public function todayAttendance(Request $request)
+    {
+        try {
+            $user = auth()->user();
+            if (!$user) {
+                return $this->sendError('Unauthorized', 401);
+            }
+            $today = now()->format('Y-m-d');
+            $attendance = EmployeeChecking::where('user_id', $user->id)->whereDate('date', $today)->get();
+            return $this->sendResponse($attendance, 'Today Attendance');
+        } catch (Exception $e) {
+            return $this->sendError('Something went wrong', 500);
+        }
+    }
 }

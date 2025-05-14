@@ -55,20 +55,6 @@ class User extends Authenticatable
     {
         return empty($value) ? null : (filter_var($value, FILTER_VALIDATE_URL) ? $value : (request()->is('api/*') ? url($value) : $value));
     }
-    public function notificationSettings()
-    {
-        return $this->hasOne(NotificationSetting::class);
-    }
-
-    public function ratings()
-    {
-        return $this->hasMany(Rating::class);
-    }
-
-    public function fileStorageTracks()
-    {
-        return $this->hasMany(FileStorageTrack::class);
-    }
 
     public function userLocations()
     {
@@ -80,18 +66,9 @@ class User extends Authenticatable
         return $this->hasMany(EmployeeChecking::class);
     }
 
-    public function expenseMoney()
-    {
-        return $this->hasMany(ExpenseMoney::class);
-    }
     public function dailyTask()
     {
         return $this->hasOne(DailyTask::class);
-    }
-
-    public function facingProblems()
-    {
-        return $this->hasMany(FacingProblem::class);
     }
 
     public function todayDurations()
@@ -99,8 +76,4 @@ class User extends Authenticatable
         return $this->hasMany(TodayDuration::class);
     }
 
-    public function subscriptions()
-    {
-        return $this->hasMany(UserSubscription::class);
-    }
 }

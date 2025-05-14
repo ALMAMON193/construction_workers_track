@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('expense_money', function (Blueprint $table) {
-                      $table->id();
+            $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->bigInteger('amount_spent');
             $table->dateTime('date');
@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('payment_method');
             $table->string('location');
             $table->longText('description');
-            $table->bigInteger('file');
+            $table->string('file');
             $table->timestamps();
         });
     }

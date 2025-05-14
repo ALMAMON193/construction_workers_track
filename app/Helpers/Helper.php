@@ -9,22 +9,25 @@ class Helper
 {
 
     //! File or Image Upload
-    public static function fileUpload($file, string $folder): ?string
-    {
-        if (!$file->isValid()) {
-            return null;
-        }
-
-        $imageName = Str::slug($name) . '.' . $file->extension();
-        $path      = public_path('uploads/' . $folder);
-        if (!file_exists($path)) {
-            if (!mkdir($path, 0755, true) && !is_dir($path)) {
-                throw new \RuntimeException(sprintf('Directory "%s" was not created', $path));
-            }
-        }
-        $file->move($path, $imageName);
-        return 'uploads/' . $folder . '/' . $imageName;
+   public static function fileUpload($file, string $folder): ?string
+{
+    if (!$file->isValid()) {
+        return null;
     }
+
+    // Use the original file name (without extension) or generate a unique name
+    $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+    $imageName = Str::slug($originalName) . '_' . time() . '.' . $file->extension();
+
+    $path = public_path('uploads/' . $folder);
+    if (!file_exists($path)) {
+        if (!mkdir($path, 0755, true) && !is_dir($path)) {
+            throw new \RuntimeException(sprintf('Directory "%s" was not created', $path));
+        }
+    }
+    $file->move($path, $imageName);
+    return 'uploads/' . $folder . '/' . $imageName;
+}
 
     //! File or Image Delete
     public static function fileDelete(string $path): void

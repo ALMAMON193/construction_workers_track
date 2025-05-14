@@ -32,7 +32,7 @@ return new class extends Migration
             $table->string('phone')->nullable();
             $table->string('country_code')->nullable();
             $table->string('address')->nullable();
-            $table->string('work_time')->nullable();
+            $table->string('working_days')->nullable();
             $table->string('avatar')->nullable();
             $table->string('dob')->nullable();
             $table->enum('gender', ['male', 'female'])->nullable();

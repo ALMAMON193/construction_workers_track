@@ -5,109 +5,148 @@ namespace App\Http\Controllers\API;
 use Exception;
 use App\Models\DailyTask;
 use Illuminate\Http\Request;
-use App\Models\DailyTaskItem;
 use App\Traits\ResponseTrait;
+use App\Models\EmployeeChecking;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Resources\DailyTaskResource;
+use Illuminate\Support\Facades\Validator;
+
+
+
 
 class DailyUpdateController extends Controller
 {
     use ResponseTrait;
-    public function index()
+    public function index(Request $request)
     {
-        try {
-            $user = auth()->user();
+        $user = Auth::user();
 
-            if (!$user) {
-                return $this->sendError('Unauthorized', [], 401);
-            }
+        // Fetch all daily tasks for the user with their descriptions
+        $tasks = DailyTask::with('descriptions')
+            ->where('user_id', $user->id)
+            ->orderBy('task_date', 'desc')
+            ->get();
 
-            // Fetch only the logged-in user's daily task with its items
-            $dailyTask = $user->dailyTask()->with('dailyTaskItems')->first();
-
-            if (!$dailyTask) {
-                return $this->sendResponse([], 'No daily tasks found for this user.');
-            }
-
-            return $this->sendResponse($dailyTask, 'Daily task retrieved successfully');
-        } catch (Exception $e) {
-            return $this->sendError('Something went wrong', [], 500);
+        if ($tasks->isEmpty()) {
+            return $this->sendError('No tasks found', 404);
         }
+
+        // Get employee checkings for all task dates in one query for efficiency
+        $taskDates = $tasks->pluck('task_date')->unique();
+        $checkings = DB::table('employee_checkings')
+            ->where('user_id', $user->id)
+            ->whereIn('date', $taskDates)
+            ->orderBy('date', 'desc')
+            ->get()
+            ->groupBy('date'); // Group by date for easy lookup
+
+        // Map checkings data to tasks
+        $tasks->transform(function ($task) use ($checkings) {
+            $taskDate = $task->task_date; // Assuming task_date is in 'Y-m-d' format
+
+            // Find check-in/out data for this task's date
+            $dateCheckings = $checkings->get($taskDate);
+
+            if ($dateCheckings) {
+                // Get the latest record for that date (if multiple exist)
+                $latestChecking = $dateCheckings->first();
+
+                $task->current_location = $latestChecking->current_location ?? null;
+                $task->total_hours = $latestChecking->total_hours ?? null;
+            } else {
+                $task->current_location = null;
+                $task->total_hours = null;
+            }
+
+            // Remove unwanted fields
+            unset($task->created_at);
+            unset($task->updated_at);
+
+            return $task;
+        });
+
+        return $this->sendResponse($tasks, 'Tasks retrieved successfully');
     }
     public function store(Request $request)
     {
-        $request->validate([
-            'task_description' => 'required|string',
-            'task_date' => 'nullable|date|date_format:Y-m-d|after_or_equal:today',
+        // Validate the request
+        $validator = Validator::make($request->all(), [
+            'tasks' => 'required|array',
+            'tasks.*.task_name' => 'required|string|max:255',
+            'tasks.*.description' => 'required|string',
+            'task_date' => 'required|date',
         ]);
 
-        $user = auth()->user();
-
-        if (!$user) {
-            return $this->sendError('Unauthorized', [], 401);
+        if ($validator->fails()) {
+            return $this->sendError($validator->errors(), 422);
         }
 
-        try {
-            return DB::transaction(function () use ($request, $user) {
-                // Get current date
-                $currentDate = now()->toDateString();
+        // Get authenticated user
+        $user = Auth::user();
 
-                // Find or create the user's daily task for today
-                $dailyTask = $user->dailyTask()->firstOrCreate([
-                    'user_id' => $user->id,
-                    'task_date' => $currentDate
-                ]);
+        // Check employee's checkout status
+        $checking = EmployeeChecking::where('user_id', $user->id)
+            ->where('status', 'check_out')
+            ->whereDate('date', $request->task_date)
+            ->first();
 
-                // Generate task number (Task 1, Task 2, etc.)
-              // Generate task number (Task 1, Task 2, etc.)
-$taskNumber = 'Task ' . ($dailyTask->dailyTaskItems()->count() + 1);
-
-                // Create the task item with current date
-                $dailyTask->dailyTaskItems()->create([
-                    'task_number' => $taskNumber,
-                    'task_description' => $request->task_description,
-                    'task_date' => $currentDate,
-                ]);
-
-                // Reload the relationship to include the new item
-                $dailyTask->load('dailyTaskItems');
-
-                return $this->sendResponse(
-                    $dailyTask,
-                    'Daily task item created successfully',
-                );
-            });
-        } catch (Exception $e) {
-            return $this->sendError('Something went wrong', [], 500);
+        if (!$checking) {
+            return $this->sendError('You are not checked in today', 403);
         }
+
+        // Create or find the daily task for the user and date
+        $dailyTask = DailyTask::firstOrCreate([
+            'user_id' => $user->id,
+            'task_date' => $request->task_date,
+        ]);
+
+        $storedDescriptions = [];
+        // Store each task description
+        foreach ($request->tasks as $task) {
+            $description = $dailyTask->descriptions()->create([
+                'task_name' => $task['task_name'],
+                'description' => $task['description'],
+            ]);
+            $storedDescriptions[] = $description;
+        }
+        // Load the daily task with all descriptions
+        $dailyTask->load('descriptions');
+
+        return $this->sendResponse($dailyTask, 'Tasks stored successfully');
     }
-
     public function details($id)
     {
-        try {
-            $user = auth()->user();
+        // Fetch the daily task with descriptions
+        $dailyTask = DailyTask::with('descriptions')->find($id);
 
-            if (!$user) {
-                return $this->sendError('Unauthorized', [], 401);
-            }
-
-            // Find the daily task with items, belonging to the authenticated user
-            $dailyTask = $user->dailyTask()
-                ->with('dailyTaskItems')
-                ->find($id);
-
-            if (!$dailyTask) {
-                return $this->sendError('Daily task not found', [], 404);
-            }
-
-            return $this->sendResponse(
-                $dailyTask,
-                'Daily task retrieved successfully'
-            );
-        } catch (Exception $e) {
-            return $this->sendError('Something went wrong', [], 500);
+        if (!$dailyTask) {
+            return $this->sendError('Daily task not found', 404);
         }
+
+        // Get the latest employee checking record for the task's user_id and date
+        $checking = DB::table('employee_checkings')
+            ->where('user_id', $dailyTask->user_id)
+            ->where('date', $dailyTask->task_date) // Match by task_date
+            ->orderBy('created_at', 'desc') // Get the latest record if multiple exist
+            ->first();
+
+        // Add the fields to the response
+        $dailyTask->current_location = $checking->current_location ?? null;
+        $dailyTask->total_hours = $checking->total_hours ?? null;
+
+        // Remove unwanted fields from the main task
+        unset($dailyTask->created_at);
+        unset($dailyTask->updated_at);
+
+        // Remove unwanted fields from each description
+        if ($dailyTask->descriptions) {
+            $dailyTask->descriptions->each(function ($description) {
+                unset($description->created_at);
+                unset($description->updated_at);
+            });
+        }
+
+        return $this->sendResponse($dailyTask, 'Daily task retrieved successfully');
     }
 }

@@ -7,14 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 class DailyTask extends Model
 {
 
-    protected $guarded = [];
-    public function user()
+protected $fillable = ['user_id', 'task_date'];
+
+    public function descriptions()
     {
-        return $this->belongsTo(User::class);
+        return $this->hasMany(TaskDescription::class, 'daily_task_id');
     }
 
-    public function dailyTaskItems()
-    {
-        return $this->hasMany(DailyTaskItem::class);
-    }
 }
