@@ -5,16 +5,13 @@ namespace App\Http\Controllers\API\User;
 use Exception;
 use App\Models\User;
 use App\Helpers\Helper;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Traits\ResponseTrait;
-use Illuminate\Support\Str;
-use JetBrains\PhpStorm\NoReturn;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
-use Illuminate\Validation\ValidationException;
-use function Pest\Laravel\json;
+
 
 class ProfileController extends Controller
 {
@@ -65,7 +62,6 @@ class ProfileController extends Controller
         // Validate incoming data
         $validatedData = $request->validate([
             'name' => 'required',
-            'email' => 'required|email|max:255|unique:users,email,' . auth()->id(),
             'phone' => 'required|string|max:20',
             'address' => 'required|string|max:500',
             'country_code' => 'required|string|max:5',
@@ -83,7 +79,13 @@ class ProfileController extends Controller
 
             // Update user data
             $updatedData = $request->only([
-                'name','email', 'dob', 'gender', 'phone', 'country_code', 'address', 'employee_id'
+                'name',
+                'dob',
+                'gender',
+                'phone',
+                'country_code',
+                'address',
+                'employee_id'
             ]);
             $user->update($updatedData);
 
@@ -92,7 +94,6 @@ class ProfileController extends Controller
                 message: 'Profile updated successfully.',
                 code: 200
             );
-
         } catch (Exception $e) {
             Log::error('Profile update failed for user ' . $user->id . ': ' . $e->getMessage());
             return $this->sendError(
@@ -100,9 +101,9 @@ class ProfileController extends Controller
                 code: 500
             );
         }
-
     }
-    public function uploadAvatar(Request $request) {
+    public function uploadAvatar(Request $request)
+    {
         $request->validate([
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:20408',
         ]);
@@ -136,11 +137,71 @@ class ProfileController extends Controller
                 'avatar' => $user->avatar,
                 'is_verified' => $user->is_verified,
             ], 'Avatar updated successfully.');
-
         } catch (Exception $e) {
             Log::error("Avatar Upload Error: " . $e->getMessage());
             return $this->sendError('Failed to update profile: ' . $e->getMessage(), 500);
         }
     }
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'old_password' => 'required|string',
+            'new_password' => 'required|string|min:8|confirmed',
+        ]);
 
+        try {
+            $user = auth()->user();
+            if (!$user) {
+                return $this->sendError('User not found', 404);
+            }
+
+            if (!password_verify($request->old_password, $user->password)) {
+                return $this->sendError('Old password is incorrect', 422);
+            }
+
+            $user->password = bcrypt($request->new_password);
+            $user->save();
+
+            return $this->sendResponse([], 'Password updated successfully.');
+        } catch (Exception $e) {
+            Log::error('Password update failed: ' . $e->getMessage());
+            return $this->sendError('Failed to update password', 500);
+        }
+    }
+    public function deleteAvatar()
+    {
+        try {
+            $user = auth()->user();
+            if (!$user) {
+                return $this->sendError('User not found', 404);
+            }
+            // Delete old avatar if exists
+            if ($user->avatar && file_exists(public_path($user->avatar))) {
+                unlink(public_path($user->avatar));
+                Helper::fileDelete($user->avatar);
+            }
+            // Remove avatar path from user
+            $user->avatar = null;
+            $user->save();
+            return $this->sendResponse([], 'Avatar deleted successfully.');
+        } catch (Exception $e) {
+            Log::error('Avatar deletion failed: ' . $e->getMessage());
+            return $this->sendError('Failed to delete avatar', 500);
+        }
+    }
+    public function deleteAccount(Request $request)
+    {
+        try {
+            $user = auth()->user();
+            if (!$user) {
+                return $this->sendError('User not found', 404);
+            }
+            // Delete user account
+            $user->delete();
+            return $this->sendResponse([], 'Account deleted successfully.');
+        } catch (Exception $e) {
+            Log::error('Account deletion failed: ' . $e->getMessage());
+            return $this->sendError('Failed to delete account', 500);
+        }
+    }
 }

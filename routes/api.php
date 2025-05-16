@@ -35,6 +35,10 @@ Route::group(['middleware' => 'auth:sanctum'], static function () {
     Route::get('/view-profile', [ProfileController::class, 'viewProfile']);
     Route::post('/update-profile', [ProfileController::class, 'updateProfile']);
     Route::post('/upload-avatar', [ProfileController::class, 'uploadAvatar']);
+    Route::post('/update-password', [ProfileController::class, 'updatePassword']);
+    Route::post('/delete-avatar', [ProfileController::class, 'deleteAvatar']);
+    Route::post('/delete-account', [ProfileController::class, 'deleteAccount']);
+
     /*======================end Profile section ================================*/
 
     /*==========================FAQ Section ===================================*/
