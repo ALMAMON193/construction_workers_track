@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use Exception;
 use Carbon\Carbon;
+use App\Models\Earning;
 use Illuminate\Http\Request;
 use App\Traits\ResponseTrait;
 use App\Models\EmployeeChecking;
@@ -75,17 +76,55 @@ class CheckInOutController extends Controller
         $checkOutTime = Carbon::parse($request->time);
         $diff = $checkOutTime->diff($checkInTime);
 
-        $totalHours = $diff->h . ' Hours ' . $diff->i . ' min';
+        $totalHoursDecimal = $diff->h + ($diff->i / 60);
+        $totalHoursFormatted = $diff->h . ' Hours ' . $diff->i . ' min';
 
         $lastCheckIn->update([
             'check_out' => $request->time,
-            'total_hours' => $totalHours,
-            'status' => 'check_out'
+            'total_hours' => $totalHoursFormatted,
+            'status' => 'check_out',
+            'current_location' => $request->current_location
+        ]);
+        $role = $lastCheckIn->role;
+
+        $hourlyRate = $user->hourly_working_rate;
+        $vatPercentage = $user->hourly_working_rate_vat;
+
+        // Calculate gross salary
+        $grossSalary = $totalHoursDecimal * $hourlyRate;
+
+        // Calculate VAT amount to deduct
+        $vatAmount = $grossSalary * ($vatPercentage / 100);
+
+        // Calculate net salary
+        $netSalary = $grossSalary - $vatAmount;
+
+        Earning::create([
+            'user_id' => $user->id,
+            'employee_checking_id' => $lastCheckIn->id,
+            'earning_date' => $date,
+            'role' => $role,
+            'salary' => $grossSalary,
+            'working_hours' => $totalHoursFormatted,
+            'vat' => $vatAmount,
+            'total_salary' => $netSalary
         ]);
 
         $this->updateUserTotalDutyTime($user);
 
-        return $this->sendResponse($lastCheckIn, 'Checked out successfully');
+        return $this->sendResponse([
+            'attendance' => $lastCheckIn,
+            'earnings' => [
+                'role' => (string)$role,
+                'check_in' => (string)$lastCheckIn->check_in,
+                'hourly_rate' => (float)$hourlyRate,
+                'hours_worked' => (string)$totalHoursFormatted,
+                'gross_salary' => (float)number_format($grossSalary, 2),
+                'tax' => (float)number_format($vatAmount, 2),
+                'tax_rate' => (float)$vatPercentage . '%',
+                'net_salary' => (float)number_format($netSalary, 2)
+            ]
+        ], 'Checked out successfully with earnings calculated');
     }
 
     protected function updateUserTotalDutyTime($user)

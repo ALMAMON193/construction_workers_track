@@ -35,6 +35,8 @@ return new class extends Migration
             $table->string('working_days')->nullable();
             $table->bigInteger('total_use_storage')->default(0);
             $table->bigInteger('total_use_storage_limit')->default(0);
+            $table->decimal('hourly_working_rate', 10, 2)->default(0);
+            $table->decimal('hourly_working_rate_vat', 10, 2)->default(0);
             $table->string('avatar')->nullable();
             $table->string('dob')->nullable();
             $table->enum('gender', ['male', 'female'])->nullable();

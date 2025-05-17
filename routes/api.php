@@ -11,6 +11,7 @@ use App\Http\Controllers\API\Auth\LoginController;
 use App\Http\Controllers\API\CheckInOutController;
 use App\Http\Controllers\API\Auth\LogoutController;
 use App\Http\Controllers\API\DailyUpdateController;
+use App\Http\Controllers\API\ReportScreenController;
 use App\Http\Controllers\API\User\ProfileController;
 use App\Http\Controllers\API\Auth\RegisterController;
 use App\Http\Controllers\API\FacingProblemController;
@@ -77,4 +78,8 @@ Route::group(['middleware' => 'auth:sanctum'], static function () {
 
     /**==========================Ratting Section ================================ */
     Route::post('/ratting', [RattingController::class, 'ratting']);
+
+    /**==========================Report Section ================================ */
+    Route::get('/report-screen', [ReportScreenController::class, 'reportScreen']);
+    Route::get('/paychecks/{id}', [ReportScreenController::class, 'paychecks']);
 });
