@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Laravel\Sanctum\Sanctum;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +20,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Sanctum::authenticateAccessTokensUsing(function ($accessToken, $isValid) {
+            return $isValid && $accessToken->created_at->gt(now()->subDays(30));
+        });
     }
 }
+

@@ -9,6 +9,7 @@ use App\Http\Controllers\API\ExpenseController;
 use App\Http\Controllers\API\RattingController;
 use App\Http\Controllers\API\Auth\LoginController;
 use App\Http\Controllers\API\CheckInOutController;
+use App\Http\Controllers\API\SocialAuthController;
 use App\Http\Controllers\API\Auth\LogoutController;
 use App\Http\Controllers\API\DailyUpdateController;
 use App\Http\Controllers\API\ReportScreenController;
@@ -27,6 +28,8 @@ Route::post('login', [LoginController::class, 'login']);
 Route::post('/forget-password', [ResetPasswordController::class, 'forgotPassword']);
 Route::post('/verify-otp', [ResetPasswordController::class, 'VerifyOTP']);
 Route::post('/reset-password', [ResetPasswordController::class, 'ResetPassword']);
+ //social login
+Route::post('/social-login', [SocialAuthController::class, 'SocialLogin']);
 
 Route::group(['middleware' => 'auth:sanctum'], static function () {
     Route::get('/refresh-token', [LoginController::class, 'refreshToken']);
@@ -82,4 +85,6 @@ Route::group(['middleware' => 'auth:sanctum'], static function () {
     /**==========================Report Section ================================ */
     Route::get('/report-screen', [ReportScreenController::class, 'reportScreen']);
     Route::get('/paychecks/{id}', [ReportScreenController::class, 'paychecks']);
+
+
 });
