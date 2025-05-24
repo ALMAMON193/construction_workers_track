@@ -76,4 +76,9 @@ class User extends Authenticatable
         return $this->hasMany(TodayDuration::class);
     }
 
+    public function locations()
+{
+    return $this->hasMany(UserLocation::class);
+}
+
 }

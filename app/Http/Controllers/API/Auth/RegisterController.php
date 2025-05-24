@@ -23,13 +23,17 @@ class RegisterController extends Controller
             'email' => 'required|string|email|max:150|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'employee_id' => 'required|string|max:20',
+            'current_location' => 'required|string',
+            'lat' => 'required|numeric',
+            'long' => 'required|numeric',
         ]);
+
         try {
             $otp = random_int(100000, 999999);
             $otpExpiresAt = Carbon::now()->addMinutes(60);
 
+            // Create user
             $user = User::create([
-
                 'name' => $request->input('name'),
                 'email' => $request->input('email'),
                 'password' => Hash::make($request->input('password')),
@@ -38,8 +42,22 @@ class RegisterController extends Controller
                 'otp_expires_at' => $otpExpiresAt,
                 'is_otp_verified' => false,
             ]);
+
+            // Create user location
+            $user->locations()->create([
+                'current_location' => $request->input('current_location'),
+                'name' => $request->input('current_location'),
+                'lat' => $request->input('lat'),
+                'long' => $request->input('long'),
+                'building' => 'unknown',
+                'appointment' => null,
+                'floor' => null,
+                'category' => 'Other',
+            ]);
+
             // Send OTP email
-            Mail::to($user->email)->send(mailable: new OtpMail($otp, $user, 'Verify Your Email Address'));
+            Mail::to($user->email)->send(new OtpMail($otp, $user, 'Verify Your Email Address'));
+
             $message = 'Register Successfully';
             return $this->sendResponse($user, $message, '', 200);
         } catch (Exception $e) {
@@ -81,8 +99,6 @@ class RegisterController extends Controller
             $user->otp = null;
             $user->otp_expires_at = null;
             $user->save();
-
-
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), 500); // Ensure 500 is integer
         }
