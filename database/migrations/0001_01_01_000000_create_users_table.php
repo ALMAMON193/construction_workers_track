@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+
             $table->string('otp')->nullable();
             $table->string('otp_created_at')->nullable();
             $table->boolean('is_otp_verified')->default(false);
@@ -27,8 +28,9 @@ return new class extends Migration
             $table->string('delete_token')->nullable();
             $table->timestamp('delete_token_expires_at')->nullable();
             $table->string('deleted_at')->nullable();
-            $table->enum('role', ['admin', 'employee'])->default('employee');
             $table->string('is_verified')->nullable();
+
+            $table->enum('role', ['admin', 'employee'])->default('employee');
             $table->string('phone')->nullable();
             $table->string('country_code')->nullable();
             $table->string('address')->nullable();

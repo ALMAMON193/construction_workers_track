@@ -15,7 +15,9 @@ return new class extends Migration
            $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('role');
-            $table->string('current_location');
+            $table->string('current_location')->nullable();
+            $table->float('lat')->nullable();
+            $table->float('long')->nullable();
             $table->enum('status', ['check_in', 'check_out']);
             $table->date('date');
             $table->string('check_in')->nullable();

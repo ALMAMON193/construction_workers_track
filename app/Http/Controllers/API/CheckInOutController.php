@@ -17,8 +17,11 @@ class CheckInOutController extends Controller
     {
         $request->validate([
             'time' => 'required|string',
-            'current_location' => 'required|string',
+            'current_location' => 'nullable|string',
             'role' => 'required|string',
+            'long' => 'nullable|numeric',
+            'lat' => 'nullable|numeric',
+            'status' => 'nullable|in:check_in,check_out',
         ]);
 
         $user = auth()->user();
@@ -51,6 +54,8 @@ class CheckInOutController extends Controller
             'role' => $request->role,
             'current_location' => $request->current_location,
             'status' => 'check_in',
+            'lat' => $request->lat,
+            'long' => $request->long,
             'date' => $date,
             'check_in' => $request->time,
             'check_out' => null,
@@ -152,6 +157,21 @@ class CheckInOutController extends Controller
             $today = now()->format('Y-m-d');
             $attendance = EmployeeChecking::where('user_id', $user->id)->whereDate('date', $today)->get();
             return $this->sendResponse($attendance, 'Today Attendance');
+        } catch (Exception $e) {
+            return $this->sendError('Something went wrong', 500);
+        }
+    }
+
+    //checking user checking history
+    public function checkingHistory()
+    {
+        try {
+            $user = auth()->user();
+            if (!$user) {
+                return $this->sendError('Unauthorized', 401);
+            }
+            $attendance = EmployeeChecking::where('user_id', $user->id)->get();
+            return $this->sendResponse($attendance, 'Checking History');
         } catch (Exception $e) {
             return $this->sendError('Something went wrong', 500);
         }

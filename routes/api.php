@@ -65,6 +65,8 @@ Route::group(['middleware' => 'auth:sanctum'], static function () {
     Route::post('/attendance', [CheckInOutController::class, 'storeAttendance']);
     //today check in and check out session
     Route::get('/attendance/today', [CheckInOutController::class, 'todayAttendance']);
+    //check in and check out history
+    Route::get('/checking/history', [CheckInOutController::class, 'checkingHistory']);
     /*==========================end Check in and Checkout Controller =========================*/
 
     /*===========================Facing Problem Section =========================*/
