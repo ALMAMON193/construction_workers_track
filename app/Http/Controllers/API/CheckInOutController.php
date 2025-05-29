@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use Exception;
 use Carbon\Carbon;
+use App\Models\User;
 use App\Models\Earning;
 use Illuminate\Http\Request;
 use App\Traits\ResponseTrait;
@@ -40,6 +41,7 @@ class CheckInOutController extends Controller
 
     protected function handleCheckIn($user, $request, $date)
     {
+
         $hasActiveCheckIn = EmployeeChecking::where('user_id', $user->id)
             ->whereDate('date', $date)
             ->whereNull('check_out')
@@ -48,7 +50,6 @@ class CheckInOutController extends Controller
         if ($hasActiveCheckIn) {
             return $this->sendError('You have an active check-in. Please check-out first.', 400);
         }
-
         $attendance = EmployeeChecking::create([
             'user_id' => $user->id,
             'role' => $request->role,
@@ -59,7 +60,7 @@ class CheckInOutController extends Controller
             'date' => $date,
             'check_in' => $request->time,
             'check_out' => null,
-            'total_hours' => null
+            'total_hours' => null,
         ]);
 
         return $this->sendResponse($attendance, 'Checked in successfully');
@@ -76,6 +77,10 @@ class CheckInOutController extends Controller
         if (!$lastCheckIn) {
             return $this->sendError('No active check-in found to pair with this check-out', 400);
         }
+        //auth user details
+        $user = auth()->user();
+        $checkAuthUser = User::find($user->id);
+        dd($checkAuthUser);
 
         $checkInTime = Carbon::parse($lastCheckIn->check_in);
         $checkOutTime = Carbon::parse($request->time);
@@ -106,6 +111,8 @@ class CheckInOutController extends Controller
 
         Earning::create([
             'user_id' => $user->id,
+            'user_name' => $user->name,
+            'user_avatar' => asset($user->avatar),
             'employee_checking_id' => $lastCheckIn->id,
             'earning_date' => $date,
             'role' => $role,
@@ -167,16 +174,32 @@ class CheckInOutController extends Controller
 
     //checking user checking history
     public function checkingHistory()
-    {
-        try {
-            $user = auth()->user();
-            if (!$user) {
-                return $this->sendError('Unauthorized', 401);
-            }
-            $attendance = EmployeeChecking::where('user_id', $user->id)->get();
-            return $this->sendResponse($attendance, 'Checking History');
-        } catch (Exception $e) {
-            return $this->sendError('Something went wrong', 500);
+{
+    try {
+        $user = auth()->user();
+        if (!$user) {
+            return $this->sendError('Unauthorized', 401);
         }
+
+        $attendance = EmployeeChecking::where('user_id', $user->id)
+            ->select('role', 'date', 'check_in', 'check_out', 'total_hours')
+            ->orderByDesc('date')
+            ->latest()->first();
+
+        $data = [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'avatar' => asset($user->avatar),
+                'working_days' => $user->working_days,
+            ],
+            'attendance' => $attendance,
+        ];
+
+        return $this->sendResponse($data, 'Checking History');
+    } catch (\Exception $e) {
+        return $this->sendError('Something went wrong', 500);
     }
+}
+
 }
