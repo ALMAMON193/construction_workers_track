@@ -52,7 +52,10 @@ class DailyUpdateController extends Controller
                 // Get the latest record for that date (if multiple exist)
                 $latestChecking = $dateCheckings->first();
 
-                $task->current_location = $latestChecking->current_location ?? null;
+                // $task->current_location = $latestChecking->current_location ?? null;
+                $task->lat = $latestChecking->lat ?? null;
+                $task->long = $latestChecking->long ?? null;
+
                 $task->total_hours = $latestChecking->total_hours ?? null;
             } else {
                 $task->current_location = null;
@@ -66,7 +69,7 @@ class DailyUpdateController extends Controller
             return $task;
         });
 
-        return $this->sendResponse($tasks, 'Tasks retrieved successfully');
+        return $this->sendResponse($tasks, 'Data fetched successfully');
     }
     public function store(Request $request)
     {
@@ -113,7 +116,7 @@ class DailyUpdateController extends Controller
         // Load the daily task with all descriptions
         $dailyTask->load('descriptions');
 
-        return $this->sendResponse($dailyTask, 'Tasks stored successfully');
+        return $this->sendResponse($dailyTask, 'Data stored successfully');
     }
     public function details($id)
     {
@@ -147,6 +150,6 @@ class DailyUpdateController extends Controller
             });
         }
 
-        return $this->sendResponse($dailyTask, 'Daily task retrieved successfully');
+        return $this->sendResponse($dailyTask, 'Data fetched successfully');
     }
 }

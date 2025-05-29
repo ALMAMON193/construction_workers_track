@@ -115,6 +115,9 @@ class CheckInOutController extends Controller
             'total_salary' => $netSalary
         ]);
 
+        // Update user's total salary amount
+        $user->increment('total_sallary_amount', $netSalary);
+
         $this->updateUserTotalDutyTime($user);
 
         return $this->sendResponse([

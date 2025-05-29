@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Models\User;
 use App\Helpers\Helper;
 use Illuminate\Support\Str;
 use App\Models\ExpenseMoney;
@@ -37,6 +38,12 @@ class ExpenseController extends Controller
             $file = $request->file('file');
             $fileUrl = Helper::fileUpload($file, 'expense');
         }
+        //check user wallat amount amount is greater than or equal to expense amount
+        $user = User::find(Auth::user()->id);
+        if ($user->total_sallary_amount < $request->amount_spent) {
+            return $this->sendError('You do not have enough balance in your wallet to make this expense', 400);
+        }
+        //store in database
         //store in database
         $expense = new ExpenseMoney();
         $expense->amount_spent = $request->amount_spent;
@@ -48,6 +55,10 @@ class ExpenseController extends Controller
         $expense->user_id = Auth::user()->id;
         $expense->file = $fileUrl;
         $expense->save();
+
+        //remove expense amount from user wallet
+        $user->total_sallary_amount = $user->total_sallary_amount - $request->amount_spent;
+        $user->save();
 
         return $this->sendResponse($expense, 'Expense Money added successfully.');
 
