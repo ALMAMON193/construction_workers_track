@@ -197,7 +197,7 @@ class CheckInOutController extends Controller
         ];
 
         return $this->sendResponse($data, 'Checking History');
-    } catch (\Exception $e) {
+    } catch (Exception $e) {
         return $this->sendError('Something went wrong', 500);
     }
 }
