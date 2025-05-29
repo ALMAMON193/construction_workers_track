@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('location');
             $table->longText('description');
             $table->string('file');
+            $table->string('type')->default('expense_history');
             $table->timestamps();
         });
     }

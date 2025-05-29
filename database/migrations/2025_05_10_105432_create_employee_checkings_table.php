@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('check_in')->nullable();
             $table->string('check_out')->nullable();
             $table->string('total_hours')->nullable();
+            $table->string('type')->default('chacking_history');
             $table->timestamps();
         });
     }

@@ -4,23 +4,21 @@ namespace App\Traits;
 
 trait ResponseTrait
 {
-    public function sendResponse($data, $message = '', $error = '', $code = 200): \Illuminate\Http\JsonResponse
+     public function sendResponse($data, $message = '', $code = 200): \Illuminate\Http\JsonResponse
     {
         return response()->json([
             'success' => true,
             'message' => $message,
             'data' => $data,
-            'error' => $error,
         ], $code);
     }
 
-    public function sendError($error, $code = 400, $data = null)
+    public function sendError($error, $code = 400, $data = null): \Illuminate\Http\JsonResponse
     {
         return response()->json([
             'success' => false,
+            'message' => $error,
             'data' => $data,
-            'message' => '',
-            'error' => $error,
         ], $code);
     }
 }

@@ -15,7 +15,7 @@ class ReportScreenController extends Controller
     use ResponseTrait;
     public function reportScreen(){
         $user = Auth::user();
-        $totoalEarning = Earning::where('user_id', $user->id)->sum('total_salary');
+
         $totalExpense = ExpenseMoney::where('user_id', $user->id)->sum('amount_spent');
         $totalDutyTime = (int) $user->working_days;
         $years = floor($totalDutyTime / (60 * 24 * 365));
@@ -23,17 +23,20 @@ class ReportScreenController extends Controller
         $hours = floor(($totalDutyTime % (60 * 24)) / 60);
         $minutes = $totalDutyTime % 60;
         $totalDutyTime = "$years years $days days $hours hours $minutes minutes";
+        $expense_history = ExpenseMoney::where('user_id', $user->id)->orderBy('date', 'desc')->get();
+
 
         //earning history
         $workersHistory = Earning::where('user_id', $user->id)->with('employeeChecking')
             ->orderBy('earning_date', 'desc')
             ->get();
         return $this->sendResponse([
-            'total_earning' => $totoalEarning,
+            'total_earning' => $user->total_sallary_amount,
             'total_expense' => $totalExpense,
             'total_duty_time' => $totalDutyTime,
-            'earning_history' => $workersHistory,
-        ], 'Report Screen');
+            'chacking_history' => $workersHistory,
+            'expense_history' => $expense_history,
+        ], 'Report Screen Data');
     }
     public function paychecks($id)
     {

@@ -42,6 +42,7 @@ return new class extends Migration
             $table->string('avatar')->nullable();
             $table->string('dob')->nullable();
             $table->enum('gender', ['male', 'female'])->nullable();
+            $table->decimal('total_sallary_amount', 10, 2)->default(0);
 
             $table->string('provider')->nullable();
             $table->string('provider_id')->nullable();
