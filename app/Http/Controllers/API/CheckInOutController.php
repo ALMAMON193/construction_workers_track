@@ -80,7 +80,6 @@ class CheckInOutController extends Controller
         //auth user details
         $user = auth()->user();
         $checkAuthUser = User::find($user->id);
-        dd($checkAuthUser);
 
         $checkInTime = Carbon::parse($lastCheckIn->check_in);
         $checkOutTime = Carbon::parse($request->time);
@@ -182,7 +181,7 @@ class CheckInOutController extends Controller
         }
 
         $attendance = EmployeeChecking::where('user_id', $user->id)
-            ->select('role', 'date', 'check_in', 'check_out', 'total_hours')
+            ->select('role', 'date', 'check_in', 'check_out', 'total_hours','lat','long')
             ->orderByDesc('date')
             ->latest()->first();
 
@@ -197,7 +196,7 @@ class CheckInOutController extends Controller
         ];
 
         return $this->sendResponse($data, 'Checking History');
-    } catch (\Exception $e) {
+    } catch (Exception $e) {
         return $this->sendError('Something went wrong', 500);
     }
 }
