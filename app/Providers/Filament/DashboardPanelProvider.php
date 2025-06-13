@@ -27,20 +27,23 @@ class DashboardPanelProvider extends PanelProvider
             ->default()
             ->id('dashboard')
             ->path('dashboard')
-            ->login()
-            ->authenticateUsing(function ($request) {
-                $user = \App\Models\User::where('email', $request->email)->first();
+            ->login(function () {
+                return \Filament\Pages\Auth\Login::make()
+                    ->authenticateUsing(function ($request) {
+                        $user = \App\Models\User::where('email', $request->email)->first();
 
-                if (
-                    $user &&
-                    Hash::check($request->password, $user->password) &&
-                    $user->role === 'admin' //  Only allow admins
-                ) {
-                    return $user;
-                }
+                        if (
+                            $user &&
+                            Hash::check($request->password, $user->password) &&
+                            $user->role === 'admin'
+                        ) {
+                            return $user;
+                        }
 
-                return null; // ❌ Reject login
+                        return null;
+                    });
             })
+
             ->colors([
                 'primary' => Color::Amber,
             ])
