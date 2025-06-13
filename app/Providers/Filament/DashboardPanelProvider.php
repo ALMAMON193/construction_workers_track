@@ -7,6 +7,7 @@ use Filament\Panel;
 use Filament\Widgets;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Illuminate\Support\Facades\Hash;
 use Filament\Http\Middleware\Authenticate;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -27,6 +28,19 @@ class DashboardPanelProvider extends PanelProvider
             ->id('dashboard')
             ->path('dashboard')
             ->login()
+            ->authenticateUsing(function ($request) {
+                $user = \App\Models\User::where('email', $request->email)->first();
+
+                if (
+                    $user &&
+                    Hash::check($request->password, $user->password) &&
+                    $user->role === 'admin' //  Only allow admins
+                ) {
+                    return $user;
+                }
+
+                return null; // ❌ Reject login
+            })
             ->colors([
                 'primary' => Color::Amber,
             ])
