@@ -79,9 +79,7 @@ class CheckInOutController extends Controller
         }
         //auth user details
         $user = auth()->user();
-        $checkAuthUser = User::find($user->id);
-        dd($checkAuthUser);
-
+       
         $checkInTime = Carbon::parse($lastCheckIn->check_in);
         $checkOutTime = Carbon::parse($request->time);
         $diff = $checkOutTime->diff($checkInTime);
@@ -111,8 +109,6 @@ class CheckInOutController extends Controller
 
         Earning::create([
             'user_id' => $user->id,
-            'user_name' => $user->name,
-            'user_avatar' => asset($user->avatar),
             'employee_checking_id' => $lastCheckIn->id,
             'earning_date' => $date,
             'role' => $role,
@@ -182,7 +178,7 @@ class CheckInOutController extends Controller
         }
 
         $attendance = EmployeeChecking::where('user_id', $user->id)
-            ->select('role', 'date', 'check_in', 'check_out', 'total_hours')
+            ->select('role', 'date', 'check_in', 'check_out', 'total_hours','lat','long')
             ->orderByDesc('date')
             ->latest()->first();
 

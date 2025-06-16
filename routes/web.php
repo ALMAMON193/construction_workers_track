@@ -1,7 +1,8 @@
 <?php
 
+use Illuminate\Support\Env;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+     return redirect()->to(env('APP_URL') . '/dashboard/login');
 });

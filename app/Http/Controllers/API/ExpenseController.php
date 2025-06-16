@@ -38,12 +38,12 @@ class ExpenseController extends Controller
             $file = $request->file('file');
             $fileUrl = Helper::fileUpload($file, 'expense');
         }
-        //check user wallat amount amount is greater than or equal to expense amount
-        $user = User::find(Auth::user()->id);
-        if ($user->total_sallary_amount < $request->amount_spent) {
-            return $this->sendError('You do not have enough balance in your wallet to make this expense', 400);
-        }
-        //store in database
+        // //check user wallat amount amount is greater than or equal to expense amount
+        // $user = User::find(Auth::user()->id);
+        // if ($user->total_sallary_amount < $request->amount_spent) {
+        //     return $this->sendError('You do not have enough balance in your wallet to make this expense', 400);
+        // }
+
         //store in database
         $expense = new ExpenseMoney();
         $expense->amount_spent = $request->amount_spent;
@@ -57,8 +57,8 @@ class ExpenseController extends Controller
         $expense->save();
 
         //remove expense amount from user wallet
-        $user->total_sallary_amount = $user->total_sallary_amount - $request->amount_spent;
-        $user->save();
+        // $user->total_sallary_amount = $user->total_sallary_amount - $request->amount_spent;
+        // $user->save();
 
         return $this->sendResponse($expense, 'Expense Money added successfully.');
 

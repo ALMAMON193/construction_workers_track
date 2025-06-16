@@ -21,7 +21,6 @@ class DailyUpdateController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-
         // Fetch all daily tasks for the user with their descriptions
         $tasks = DailyTask::with('descriptions')
             ->where('user_id', $user->id)
@@ -84,7 +83,6 @@ class DailyUpdateController extends Controller
         if ($validator->fails()) {
             return $this->sendError($validator->errors(), 422);
         }
-
         // Get authenticated user
         $user = Auth::user();
 
@@ -97,7 +95,6 @@ class DailyUpdateController extends Controller
         if (!$checking) {
             return $this->sendError('You are not checked in today', 403);
         }
-
         // Create or find the daily task for the user and date
         $dailyTask = DailyTask::firstOrCreate([
             'user_id' => $user->id,

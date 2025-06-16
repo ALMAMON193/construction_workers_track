@@ -11,4 +11,8 @@ class EmployeeChecking extends Model
     {
         return $this->belongsTo(User::class);
     }
+    public function dailyTask()
+    {
+        return $this->belongsTo(DailyTask::class);
+    }
 }

@@ -14,4 +14,9 @@ protected $fillable = ['user_id', 'task_date'];
         return $this->hasMany(TaskDescription::class, 'daily_task_id');
     }
 
+    public function employeeChecking()
+    {
+        return $this->hasMany(EmployeeChecking::class);
+    }
+
 }
