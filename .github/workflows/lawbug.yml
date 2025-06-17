@@ -18,17 +18,20 @@ jobs:
           username: lawbug@lawbag.softvencefsd.xyz
           password: "68vdJ6dMid=8"
 
-  FTP-Deploy-Mypwtracker:
-    name: FTP-Deploy-Mypwtracker
+  SFTP-Deploy-Mypwtracker:
+    name: SFTP-Deploy-Mypwtracker
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2.1.0
         with:
           fetch-depth: 2
-      - name: FTP-Deploy-Action
-        uses: SamKirkland/FTP-Deploy-Action@4.3.0
+      - name: Deploy via SFTP
+        uses: appleboy/scp-action@master
         with:
-          server: 46.202.92.70
+          host: 46.202.92.70
           username: mypwtracker_ftp
           password: "TiS09e64ePD7sv2pEe3d"
+          port: 22
+          source: "."
+          target: "home/mypwtracker/htdocs/mypwtracker.com/"
 
