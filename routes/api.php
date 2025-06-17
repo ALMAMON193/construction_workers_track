@@ -1,7 +1,6 @@
 <?php
 
-use Illuminate\Http\Request;
-use App\Models\FacingProblem;
+// routes/api.php
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\FAQController;
 use App\Http\Controllers\API\UserController;

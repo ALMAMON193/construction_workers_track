@@ -31,3 +31,6 @@ jobs:
           server: 46.202.92.70
           username: mypwtracker_ftp
           password: "CspeXTstJ7KXqJOLqqE5"
+          port: 21
+          security: ftps
+          timeout: 60000
