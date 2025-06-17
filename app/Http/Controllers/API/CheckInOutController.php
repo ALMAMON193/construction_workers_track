@@ -9,6 +9,8 @@ use App\Models\Earning;
 use Illuminate\Http\Request;
 use App\Traits\ResponseTrait;
 use App\Models\EmployeeChecking;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 
 class CheckInOutController extends Controller
@@ -79,7 +81,7 @@ class CheckInOutController extends Controller
         }
         //auth user details
         $user = auth()->user();
-       
+
         $checkInTime = Carbon::parse($lastCheckIn->check_in);
         $checkOutTime = Carbon::parse($request->time);
         $diff = $checkOutTime->diff($checkInTime);
@@ -120,7 +122,7 @@ class CheckInOutController extends Controller
 
         // Update user's total salary amount
         $user->increment('total_sallary_amount', $netSalary);
-
+        DB::commit();
         $this->updateUserTotalDutyTime($user);
 
         return $this->sendResponse([
@@ -140,18 +142,19 @@ class CheckInOutController extends Controller
 
     protected function updateUserTotalDutyTime($user)
     {
-        $totalMinutes = EmployeeChecking::where('user_id', $user->id)
+        // Count unique days with at least one check-out
+        $workingDays = EmployeeChecking::where('user_id', $user->id)
             ->whereNotNull('check_out')
-            ->whereNotNull('total_hours')
-            ->get()
-            ->sum(function ($record) {
-                if (preg_match('/(\d+) Hours (\d+) min/', $record->total_hours, $matches)) {
-                    return ((int)$matches[1] * 60) + (int)$matches[2];
-                }
-                return 0;
-            });
-        $workingDays = floor($totalMinutes / (60 * 8));
-        $user->update(['working_days' => "$workingDays Days"]);
+            ->distinct('date')
+            ->count('date');
+
+        // Log for debugging
+        Log::info("Calculated unique working days for user {$user->id}: {$workingDays}");
+        try {
+            $user->update(['working_days' => $workingDays]);
+        } catch (Exception $e) {
+            Log::error("Failed to update working_days for user {$user->id}: {$e->getMessage()}");
+        }
     }
     public function todayAttendance(Request $request)
     {
@@ -170,32 +173,30 @@ class CheckInOutController extends Controller
 
     //checking user checking history
     public function checkingHistory()
-{
-    try {
-        $user = auth()->user();
-        if (!$user) {
-            return $this->sendError('Unauthorized', 401);
+    {
+        try {
+            $user = auth()->user();
+            if (!$user) {
+                return $this->sendError('Unauthorized', 401);
+            }
+
+            $attendance = EmployeeChecking::where('user_id', $user->id)
+                ->select('role', 'date', 'check_in', 'check_out', 'total_hours', 'lat', 'long')
+                ->orderByDesc('date')
+                ->get();
+
+            $data = [
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'avatar' => $user->avatar ?? '',
+                    'working_days' => intval($user->working_days) ?? "0 Days",
+                ],
+                'attendance' => $attendance ?? [],
+            ];
+            return $this->sendResponse($data, 'Checking History');
+        } catch (Exception $e) {
+            return $this->sendError('Something went wrong', 500);
         }
-
-        $attendance = EmployeeChecking::where('user_id', $user->id)
-            ->select('role', 'date', 'check_in', 'check_out', 'total_hours','lat','long')
-            ->orderByDesc('date')
-            ->latest()->first();
-
-        $data = [
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'avatar' => asset($user->avatar),
-                'working_days' => $user->working_days,
-            ],
-            'attendance' => $attendance,
-        ];
-
-        return $this->sendResponse($data, 'Checking History');
-    } catch (Exception $e) {
-        return $this->sendError('Something went wrong', 500);
     }
-}
-
 }

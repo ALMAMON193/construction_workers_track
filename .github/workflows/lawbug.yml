@@ -4,8 +4,8 @@ on:
     branches:
       - main
 jobs:
-  FTP-Deploy-Action:
-    name: FTP-Deploy-Action
+  FTP-Deploy-Softvence:
+    name: FTP-Deploy-Softvence
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2.1.0
@@ -17,3 +17,17 @@ jobs:
           server: ftp.softvencefsd.xyz
           username: lawbug@lawbag.softvencefsd.xyz
           password: "68vdJ6dMid=8"
+
+  FTP-Deploy-Mypwtracker:
+    name: FTP-Deploy-Mypwtracker
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2.1.0
+        with:
+          fetch-depth: 2
+      - name: FTP-Deploy-Action
+        uses: SamKirkland/FTP-Deploy-Action@4.3.0
+        with:
+          server: 46.202.92.70
+          username: mypwtracker_ftp
+          password: "CspeXTstJ7KXqJOLqqE5"
