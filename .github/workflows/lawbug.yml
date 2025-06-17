@@ -31,7 +31,4 @@ jobs:
           host: 46.202.92.70
           username: mypwtracker_ftp
           password: "TiS09e64ePD7sv2pEe3d"
-          port: 22
-          source: "."
-          target: "home/mypwtracker/htdocs/mypwtracker.com/"
 
