@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('daily_tasks', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('employee_checking_id')->constrained('employee_checkings')->onDelete('cascade');
             $table->date('task_date');
             $table->timestamps();
         });

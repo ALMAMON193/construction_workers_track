@@ -52,7 +52,8 @@ Route::group(['middleware' => 'auth:sanctum'], static function () {
     /*==========================Daily Update Tastk Section ================================*/
     Route::get('/daily-update-task', [DailyUpdateController::class, 'index']);
     Route::post('/create-daily-update-task', [DailyUpdateController::class, 'store']);
-    Route::get('/details-daily-update-task/{id}', [DailyUpdateController::class, 'details']);
+    Route::post('/details-daily-update-task/{dailyTask}', [DailyUpdateController::class, 'update']);
+    Route::post('/delete-task-description/{dailyTask}/{descriptionId}', [DailyUpdateController::class, 'deleteTaskDescription']);
     /*==========================end Daily Update Tastk Section ================================*/
 
     /*==========================User Location Section ===================================*/

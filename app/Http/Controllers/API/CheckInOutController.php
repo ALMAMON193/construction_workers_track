@@ -156,7 +156,7 @@ class CheckInOutController extends Controller
             Log::error("Failed to update working_days for user {$user->id}: {$e->getMessage()}");
         }
     }
-    public function todayAttendance(Request $request)
+    public function todayAttendance()
     {
         try {
             $user = auth()->user();
@@ -170,7 +170,6 @@ class CheckInOutController extends Controller
             return $this->sendError('Something went wrong', 500);
         }
     }
-
     //checking user checking history
     public function checkingHistory()
     {

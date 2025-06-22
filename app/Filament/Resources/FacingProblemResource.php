@@ -13,10 +13,8 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Notifications\Notification;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\FacingProblemResource\Pages;
-use App\Filament\Resources\FacingProblemResource\RelationManagers;
+
 
 class FacingProblemResource extends Resource
 {
