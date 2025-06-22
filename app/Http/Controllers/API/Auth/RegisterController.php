@@ -77,6 +77,7 @@ class RegisterController extends Controller
             Log::error('Register Error', (array)$e->getMessage());
             return $this->sendError($e->getMessage());
         }
+        
     }
     public function VerifyEmail(Request $request)
     {
