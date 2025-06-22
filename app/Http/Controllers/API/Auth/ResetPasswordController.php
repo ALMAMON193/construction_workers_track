@@ -70,9 +70,6 @@ class ResetPasswordController extends Controller
             if (!$user) {
                 return $this->sendError("User Not Fount",404);
             }
-            if (Carbon::parse($user->otp_expires_at)->isPast()) {
-                return $this->sendError('OTP has expired. Please request a new OTP.',401);
-            }
 
             if ($user->otp !== $request->otp) {
                 return $this->sendError('Invalid OTP', 401);
