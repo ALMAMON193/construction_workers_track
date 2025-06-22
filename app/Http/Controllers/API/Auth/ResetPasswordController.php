@@ -48,7 +48,6 @@ class ResetPasswordController extends Controller
                 message: 'Password reset OTP has been sent to your email address.',
                 code: 200
             );
-
         } catch (Exception $e) {
             return $this->sendError(
                 error: 'Failed to process password reset request. Please try again later.',
@@ -60,7 +59,7 @@ class ResetPasswordController extends Controller
 
     public function VerifyOTP(Request $request): \Illuminate\Http\JsonResponse
     {
-         $request->validate([
+        $request->validate([
             'email' => 'required|email|exists:users,email',
             'otp' => 'required|digits:6',
         ]);
@@ -68,7 +67,7 @@ class ResetPasswordController extends Controller
             $user = User::where('email', $request->email)->first();
 
             if (!$user) {
-                return $this->sendError("User Not Fount",404);
+                return $this->sendError("User Not Fount", 404);
             }
 
             if ($user->otp !== $request->otp) {
@@ -102,45 +101,22 @@ class ResetPasswordController extends Controller
             'token' => 'required|string',
             'password' => 'required|string|min:8|confirmed',
         ]);
-
         try {
             $user = User::where('email', $request->email)->first();
 
             if (!$user) {
-                return $this->sendError(
-                    error: 'User account not found.',
-                    code: 404
-                );
+                return $this->sendError('User Not Found', 401);
             }
-
-            $tokenValid = $user->reset_password_token === $request->token &&
-                $user->reset_password_token_expire_at >= Carbon::now();
-
-            if (!$tokenValid) {
-                return $this->sendError(
-                    error: 'The password reset link has expired or is invalid. Please request a new one.',
-                    code: 419
-                );
-            }
-
             $user->update([
                 'password' => Hash::make($request->password),
                 'reset_password_token' => null,
                 'reset_password_token_expire_at' => null,
             ]);
-
-            return $this->sendResponse(
-                data: ['email' => $user->email],
-                message: 'Your password has been reset successfully. You can now login with your new password.',
-                code: 200
-            );
-
+            $message = 'Password reset successfully. Please login with your new password.';
+            return $this->sendResponse([], $message);
         } catch (Exception $e) {
-            return $this->sendError(
-                error: 'Failed to reset password. Please try again.',
-                code: 500,
-                data: ['system_error' => $e->getMessage()]
-            );
+            Log::error('Failed to reset password: ' . $e->getMessage());
+            return $this->sendError('Failed to reset password', 500);
         }
     }
 }
