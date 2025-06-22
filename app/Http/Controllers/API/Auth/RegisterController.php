@@ -59,7 +59,7 @@ class RegisterController extends Controller
             Mail::to($user->email)->send(new OtpMail($otp, $user, 'Verify Your Email Address'));
 
             $message = 'Register Successfully';
-            return $this->sendResponse($user, $message, '', 200);
+            return $this->sendResponse($user, $message);
         } catch (Exception $e) {
             Log::error('Register Error', (array)$e->getMessage());
             return $this->sendError($e->getMessage());
