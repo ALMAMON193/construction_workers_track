@@ -79,7 +79,7 @@ class RegisterController extends Controller
             if (!empty($user->email_verified_at)) {
                 $user->is_verified = true;
                 $message = 'Email Already Verified';
-                return $this->sendResponse($user, $message, '', 200); // Ensure 200 is integer
+                return $this->sendResponse($user, $message); // Ensure 200 is integer
             }
 
             // Check if OTP code is valid
@@ -99,6 +99,21 @@ class RegisterController extends Controller
             $user->otp = null;
             $user->otp_expires_at = null;
             $user->save();
+            $message = 'Email Verified Successfully';
+            return $this->sendResponse($user, $message);
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage(), 500);
+        }
+    }
+
+    public function VerifyOtp(Request $request)
+    {
+        $request->validate([
+            'otp' => 'required|numeric',
+        ]);
+
+        try {
+            $user = User::where('otp', $request->input('otp'))->first();
         } catch (Exception $e) {
             return $this->sendError($e->getMessage(), 500); // Ensure 500 is integer
         }
@@ -125,8 +140,8 @@ class RegisterController extends Controller
             $user->otp_expires_at = $otpExpiresAt;
             $user->save();
             Mail::to($user->email)->send(new OtpMail($newOtp, $user, 'Verify Your Email Address'));
-
-            return  $this->sendResponse($user, 'OTP sent successfully.', '', 200);
+             $message = 'OTP sent successfully.';
+            return  $this->sendResponse($user, $message);
         } catch (Exception $e) {
             return  $this->sendError($e->getMessage(), $e->getCode());
         }
