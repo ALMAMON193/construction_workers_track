@@ -16,7 +16,6 @@ class SocialAuthController extends Controller
     use ResponseTrait;
     public function SocialLogin(Request $request): \Illuminate\Http\JsonResponse
     {
-
         $request->validate([
             'token'    => 'required',
             'provider' => 'required|in:google,facebook,apple',

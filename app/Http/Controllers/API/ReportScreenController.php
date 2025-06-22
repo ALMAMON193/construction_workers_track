@@ -7,31 +7,51 @@ use App\Models\Earning;
 use App\Models\ExpenseMoney;
 use Illuminate\Http\Request;
 use App\Traits\ResponseTrait;
+use App\Models\EmployeeChecking;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 
 class ReportScreenController extends Controller
 {
     use ResponseTrait;
-    public function reportScreen(){
+    public function reportScreen()
+    {
         $user = Auth::user();
 
         $totalExpense = ExpenseMoney::where('user_id', $user->id)->sum('amount_spent');
-        $totalDutyTime = (int) $user->working_days;
-        $years = floor($totalDutyTime / (60 * 24 * 365));
-        $days = floor(($totalDutyTime % (60 * 24 * 365)) / (60 * 24));
-        $hours = floor(($totalDutyTime % (60 * 24)) / 60);
-        $minutes = $totalDutyTime % 60;
-        $totalDutyTime = "$years years $days days $hours hours $minutes minutes";
+
+        // Calculate total duty time
+        $totalHours = EmployeeChecking::where('user_id', $user->id)
+            ->whereNotNull('total_hours')
+            ->sum('total_hours');
+
+        // Convert total hours to minutes
+        $totalMinutes = $totalHours * 60;
+
+        // Convert minutes to years, days, and remaining minutes
+        $minutesPerYear = 365 * 24 * 60; // Minutes in a year (ignoring leap years for simplicity)
+        $minutesPerDay = 24 * 60; // Minutes in a day
+
+        $years = floor($totalMinutes / $minutesPerYear);
+        $remainingMinutesAfterYears = $totalMinutes % $minutesPerYear;
+        $days = floor($remainingMinutesAfterYears / $minutesPerDay);
+        $remainingMinutes = $remainingMinutesAfterYears % $minutesPerDay;
+
+        $totalDutyTime = [
+            'years' => $years,
+            'days' => $days,
+            'minutes' => $remainingMinutes
+        ];
+
         $expense_history = ExpenseMoney::where('user_id', $user->id)->orderBy('date', 'desc')->get();
 
-
-        //earning history
+        // Earning history
         $workersHistory = Earning::where('user_id', $user->id)->with('employeeChecking')
             ->orderBy('earning_date', 'desc')
             ->get();
+
         return $this->sendResponse([
-            'total_earning' => $user->total_sallary_amount,
+            'total_earning' => intval($user->total_sallary_amount),
             'total_expense' => $totalExpense,
             'total_duty_time' => $totalDutyTime,
             'chacking_history' => $workersHistory,
