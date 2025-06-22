@@ -9,6 +9,7 @@ use App\Mail\OtpMail;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Traits\ResponseTrait;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -59,35 +60,23 @@ class ResetPasswordController extends Controller
 
     public function VerifyOTP(Request $request): \Illuminate\Http\JsonResponse
     {
-        $request->validate([
+         $request->validate([
             'email' => 'required|email|exists:users,email',
             'otp' => 'required|digits:6',
         ]);
-
         try {
             $user = User::where('email', $request->email)->first();
 
             if (!$user) {
-                return $this->sendError(
-                    error: 'User account not found.',
-                    code: 404
-                );
+                return $this->sendError("User Not Fount",404);
             }
-
             if (Carbon::parse($user->otp_expires_at)->isPast()) {
-                return $this->sendError(
-                    error: 'The OTP has expired. Please request a new one.',
-                    code: 400
-                );
+                return $this->sendError('OTP has expired. Please request a new OTP.',401);
             }
 
             if ($user->otp !== $request->otp) {
-                return $this->sendError(
-                    error: 'The provided OTP is invalid. Please check and try again.',
-                    code: 400
-                );
+                return $this->sendError('Invalid OTP', 401);
             }
-
             $token = Str::random(60);
             $user->update([
                 'otp' => null,
@@ -95,22 +84,17 @@ class ResetPasswordController extends Controller
                 'reset_password_token' => $token,
                 'reset_password_token_expire_at' => Carbon::now()->addHour(),
             ]);
+            $success = [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'token' => $token,
+            ];
 
-            return $this->sendResponse(
-                data: [
-                    'reset_token' => $token,
-                    'token_expires_at' => Carbon::now()->addHour()->toDateTimeString()
-                ],
-                message: 'OTP verified successfully. You can now reset your password.',
-                code: 200
-            );
-
+            return $this->sendResponse($success, 'OTP verified successfully. Please reset your password.', 200);
         } catch (Exception $e) {
-            return $this->sendError(
-                error: 'Failed to verify OTP. Please try again.',
-                code: 500,
-                data: ['system_error' => $e->getMessage()]
-            );
+            Log::error('Failed to verify OTP: ' . $e->getMessage());
+            return $this->sendError('Failed to verify OTP', 500);
         }
     }
 
