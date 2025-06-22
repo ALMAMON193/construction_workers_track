@@ -47,12 +47,12 @@ class User extends Authenticatable implements FilamentUser,HasAvatar
         'total_use_storage',
         'total_use_storage_limit',
         'total_sallary_amount',
-        'is_verified'
+        'is_verified',
+        'otp',
     ];
 
     protected $hidden = [
         'password',
-        'otp',
         'otp_expires_at',
         'email_verified_at',
         'reset_password_token',

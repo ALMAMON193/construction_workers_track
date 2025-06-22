@@ -16,57 +16,59 @@ use Illuminate\Support\Facades\Mail;
 class RegisterController extends Controller
 {
     use ResponseTrait;
-    public function register(Request $request): \Illuminate\Http\JsonResponse
-    {
-        $request->validate([
-            'name' => 'nullable|string|max:100',
-            'email' => 'required|string|email|max:150|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'employee_id' => 'required|string|max:20',
-            'current_location' => 'required|string',
-            'lat' => 'required|numeric',
-            'long' => 'required|numeric',
+   public function register(Request $request): \Illuminate\Http\JsonResponse
+{
+    $request->validate([
+        'name' => 'nullable|string|max:100',
+        'email' => 'required|string|email|max:150|unique:users',
+        'password' => 'required|string|min:8|confirmed',
+        'employee_id' => 'required|string|max:20',
+        'current_location' => 'required|string',
+        'lat' => 'required|numeric',
+        'long' => 'required|numeric',
+    ]);
+
+    try {
+        $otp = random_int(100000, 999999);
+        $otpExpiresAt = Carbon::now()->addMinutes(60);
+
+        // Create user with all necessary fields including OTP
+        $user = User::create([
+            'name' => $request->input('name'),
+            'email' => $request->input('email'),
+            'password' => Hash::make($request->input('password')),
+            'employee_id' => $request->input('employee_id'),
+            'otp' => $otp,
+            'otp_expires_at' => $otpExpiresAt,
+            'is_otp_verified' => false,
         ]);
 
-        try {
-            $otp = random_int(100000, 999999);
-            $otpExpiresAt = Carbon::now()->addMinutes(60);
+        // Create user location
+        $user->locations()->create([
+            'current_location' => $request->input('current_location'),
+            'name' => $request->input('current_location'),
+            'lat' => $request->input('lat'),
+            'long' => $request->input('long'),
+            'building' => 'unknown',
+            'appointment' => null,
+            'floor' => null,
+            'category' => 'Other',
+        ]);
+        $user->makeHidden(['otp']);
 
-            // Create user
-            $user = User::create([
-                'name' => $request->input('name'),
-                'email' => $request->input('email'),
-                'password' => Hash::make($request->input('password')),
-                'employee_id' => $request->input('employee_id'),
-                'otp' => $otp,
-                'otp_expires_at' => $otpExpiresAt,
-                'is_otp_verified' => false,
-            ]);
+        // Send OTP email
+        Mail::to($user->email)->send(new OtpMail($otp, $user, 'Verify Your Email Address'));
 
-            // Create user location
-            $user->locations()->create([
-                'current_location' => $request->input('current_location'),
-                'name' => $request->input('current_location'),
-                'lat' => $request->input('lat'),
-                'long' => $request->input('long'),
-                'building' => 'unknown',
-                'appointment' => null,
-                'floor' => null,
-                'category' => 'Other',
-            ]);
-
-            // Send OTP email
-            Mail::to($user->email)->send(new OtpMail($otp, $user, 'Verify Your Email Address'));
-
-            $message = 'Register Successfully';
-            return $this->sendResponse($user, $message);
-        } catch (Exception $e) {
-            Log::error('Register Error', (array)$e->getMessage());
-            return $this->sendError($e->getMessage());
-        }
+        $message = 'Registered successfully. Please verify your email with the OTP sent.';
+        return $this->sendResponse($user, $message);
+    } catch (Exception $e) {
+        Log::error('Registration Error: ' . $e->getMessage());
+        return $this->sendError('Registration failed: ' . $e->getMessage());
     }
+}
     public function VerifyEmail(Request $request)
     {
+
         $request->validate([
             'email' => 'required|email|exists:users,email',
             'otp'   => 'required|digits:6',
@@ -81,6 +83,7 @@ class RegisterController extends Controller
                 $message = 'Email Already Verified';
                 return $this->sendResponse($user, $message); // Ensure 200 is integer
             }
+
 
             // Check if OTP code is valid
             if ((string)$user->otp !== (string)$request->input('otp')) {
