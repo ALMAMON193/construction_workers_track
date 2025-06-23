@@ -20,16 +20,24 @@ class ReportScreenController extends Controller
 
         $totalExpense = ExpenseMoney::where('user_id', $user->id)->sum('amount_spent');
 
-        // Calculate total duty time
-        $totalHours = EmployeeChecking::where('user_id', $user->id)
+        // Calculate total duty time by parsing total_hours
+        $checkings = EmployeeChecking::where('user_id', $user->id)
             ->whereNotNull('total_hours')
-            ->sum('total_hours');
+            ->get();
 
-        // Convert total hours to minutes
-        $totalMinutes = $totalHours * 60;
+        $totalMinutes = 0;
+        foreach ($checkings as $checking) {
+            // Example: "1 Hours 0 min" -> extract minutes
+            preg_match('/(\d+)\s*Hours\s*(\d+)\s*min/', $checking->total_hours, $matches);
+            if (isset($matches[1]) && isset($matches[2])) {
+                $hours = (int)$matches[1];
+                $minutes = (int)$matches[2];
+                $totalMinutes += ($hours * 60) + $minutes;
+            }
+        }
 
-        // Convert minutes to years, days, and remaining minutes
-        $minutesPerYear = 365 * 24 * 60; // Minutes in a year (ignoring leap years for simplicity)
+        // Convert total minutes to years, days, and remaining minutes
+        $minutesPerYear = 365 * 24 * 60; // Minutes in a year (ignoring leap years)
         $minutesPerDay = 24 * 60; // Minutes in a day
 
         $years = floor($totalMinutes / $minutesPerYear);
