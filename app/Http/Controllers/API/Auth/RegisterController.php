@@ -66,18 +66,17 @@ class RegisterController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'role' => $user->role,
                 'employee_id' => $user->employee_id,
                 'lat' => $user->locations->first()->lat,
                 'long' => $user->locations->first()->long,
             ];
-
-            return $this->sendResponse($success, 'Register Successfully Please Verify Your Email',201);
+            $message = 'Register Successfully Please Verify Your Email';
+            return $this->sendResponse($success, $message, 201);
         } catch (Exception $e) {
             Log::error('Register Error', (array)$e->getMessage());
             return $this->sendError($e->getMessage());
         }
-        
+
     }
     public function VerifyEmail(Request $request)
     {
