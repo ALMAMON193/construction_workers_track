@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Models\User;
+use App\Models\TaskDescription;
+use App\Models\EmployeeChecking;
 use Illuminate\Database\Eloquent\Model;
 
 class DailyTask extends Model

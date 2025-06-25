@@ -2,10 +2,8 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Models\User;
 use App\Models\Earning;
 use App\Models\ExpenseMoney;
-use Illuminate\Http\Request;
 use App\Traits\ResponseTrait;
 use App\Models\EmployeeChecking;
 use App\Http\Controllers\Controller;
@@ -69,9 +67,10 @@ class ReportScreenController extends Controller
     public function paychecks($id)
     {
         $user = Auth::user();
-        $paychecks = Earning::where('user_id', $user->id)->with('employeeChecking')
-            ->orderBy('earning_date', 'desc')
-            ->findOrFail($id);
-        return $this->sendResponse($paychecks, 'Paychecks Details');
+
+        $paycheck = Earning::where('id', $id)->with('employeeChecking')->first();
+        dd($paycheck);
+
+        return $this->sendResponse($paycheck, 'Paychecks Details');
     }
 }

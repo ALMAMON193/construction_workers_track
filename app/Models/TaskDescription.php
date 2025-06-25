@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\DailyTask;
 use Illuminate\Database\Eloquent\Model;
 
 class TaskDescription extends Model

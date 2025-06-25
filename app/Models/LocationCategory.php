@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\User;
+use App\Models\UserLocation;
 use Illuminate\Database\Eloquent\Model;
 
 class LocationCategory extends Model

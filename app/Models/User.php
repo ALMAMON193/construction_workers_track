@@ -4,6 +4,10 @@ namespace App\Models;
 
 
 use Filament\Panel;
+use App\Models\DailyTask;
+use App\Models\UserLocation;
+use App\Models\TodayDuration;
+use App\Models\EmployeeChecking;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\Storage;
 use Filament\Models\Contracts\HasAvatar;

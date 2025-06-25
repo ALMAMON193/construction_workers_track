@@ -8,7 +8,6 @@ use App\Models\User;
 use App\Mail\OtpMail;
 use Illuminate\Http\Request;
 use App\Traits\ResponseTrait;
-use Livewire\Attributes\Validate;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
@@ -71,7 +70,7 @@ class RegisterController extends Controller
                 'long' => $user->locations->first()->long,
             ];
             $message = 'Register Successfully Please Verify Your Email';
-            return $this->sendResponse($success, $message, 201);
+            return $this->sendResponse($success, $message);
         } catch (Exception $e) {
             Log::error('Register Error', (array)$e->getMessage());
             return $this->sendError($e->getMessage());
